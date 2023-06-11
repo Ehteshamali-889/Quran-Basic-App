@@ -404,7 +404,7 @@ const FirstSurah = () => {
   }, []);
 
   return (
-    <View>
+    <View style={{marginTop:20}}>
       {renderContent()}
       <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 20 }}>
       {currentPage > 1 && (
