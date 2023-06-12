@@ -12,15 +12,46 @@ const CustomMarker = ({ coordinate, image, name, distance, onPress }) => {
 };
 
 const MosqueModal = ({ visible, onClose, name, distance, prayerTimings }) => {
+  const excludedPrayers = ['Firstthird', 'Lastthird', 'Midnight', 'Imsak'];
+  const [showJamaatTimings, setShowJamaatTimings] = useState(false);
+
+  const toggleTimings = () => {
+    setShowJamaatTimings(!showJamaatTimings);
+  };
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>{name}</Text>
           {distance && <Text style={styles.modalText}>Distance: {(distance / 1000).toFixed(2)} km</Text>}
-          {Object.entries(prayerTimings).map(([prayer, time]) => (
-            <Text key={prayer} style={styles.modalText}>{prayer}: {time}</Text>
-          ))}
+          <View style={styles.tabContainer}>
+            <TouchableOpacity
+              style={[styles.tabButton, !showJamaatTimings && styles.activeTab]}
+              onPress={toggleTimings}
+            >
+              <Text style={[styles.tabButtonText, !showJamaatTimings && styles.activeTabText]}>Prayer Timings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tabButton, showJamaatTimings && styles.activeTab]}
+              onPress={toggleTimings}
+            >
+              <Text style={[styles.tabButtonText, showJamaatTimings && styles.activeTabText]}>Jamaat Timings</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.prayerTable}>
+            {Object.entries(prayerTimings).map(([prayer, time]) => {
+              if (excludedPrayers.includes(prayer) || (showJamaatTimings && prayer !== 'Jummah')) {
+                return null; // Exclude the prayer from rendering
+              }
+              return (
+                <View key={prayer} style={styles.prayerRow}>
+                  <Text style={styles.prayerName}>{prayer}</Text>
+                  <Text style={styles.prayerTime}>{time}</Text>
+                </View>
+              );
+            })}
+          </View>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeButtonText}>Close</Text>
           </TouchableOpacity>
@@ -29,6 +60,9 @@ const MosqueModal = ({ visible, onClose, name, distance, prayerTimings }) => {
     </Modal>
   );
 };
+
+
+
 
 
 const Maps = () => {
@@ -236,6 +270,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: 'black',
+  },
+  prayerTable: {
+    marginTop: 10,
+  },
+  prayerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  prayerName: {
+    fontWeight: 'bold',
+  },
+  prayerTime: {
+    marginLeft: 10,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  tabButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginRight: 10,
+    backgroundColor: '#eaeaea',
+  },
+  activeTab: {
+    backgroundColor: '#2196F3', // Example active tab color
+  },
+  tabButtonText: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: 'bold',
+  },
+  activeTabText: {
+    color: '#fff', // Example active tab text color
   },
 });
 
