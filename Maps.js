@@ -17,7 +17,7 @@ const MosqueModal = ({ visible, onClose, name, distance, jummahTiming, zuhrTimin
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>{name}</Text>
-          <Text style={styles.modalText}>Distance: {distance} meters</Text>
+          {distance && <Text style={styles.modalText}>Distance: {(distance / 1000).toFixed(2)} km</Text>}
           <Text style={styles.modalText}>Jummah Timing: {jummahTiming}</Text>
           <Text style={styles.modalText}>Zuhr Timing: {zuhrTiming}</Text>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -70,27 +70,29 @@ const Maps = () => {
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
     );
   };
-  
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Radius of the earth in km
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) *
-        Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c * 1000; // Distance in meters
-    return distance;
-  };
-  
-  const toRad = (value) => {
-    return (value * Math.PI) / 180;
+
+  const getJummahTiming = async (latitude, longitude) => {
+    const url = `http://api.aladhan.com/v1/calendar?latitude=${latitude}&longitude=${longitude}&method=2`; // Replace with your desired calculation method (here, method=2 corresponds to Islamic Society of North America (ISNA))
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      const currentDate = new Date();
+      const hijriDate = data.data.find((item) => item.date.gregorian.date === currentDate.toISOString().split('T')[0]);
+
+      if (hijriDate && hijriDate.timings.Jummah) {
+        return hijriDate.timings.Jummah;
+      } else {
+        return 'Not available';
+      }
+    } catch (error) {
+      console.log('Error fetching Jummah timing:', error);
+      return 'Not available';
+    }
   };
 
   const getNearbyMosques = async (latitude, longitude) => {
+    // Replace this API key with your Google Places API key
     const apiKey = 'AIzaSyBkZD_cnR-XhqYKYV3ng4j0l29IAPjoQmQ'; // Replace with your Google Places API key
     const radius = 5000; // Specify the radius (in meters) around the current location to search for mosques
     const type = 'mosque'; // Specify the type of place to search for (mosque in this case)
@@ -100,31 +102,21 @@ const Maps = () => {
         `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${apiKey}`
       );
       const data = await response.json();
-      
+
       const mosques = await Promise.all(
         data.results.map(async (mosque) => {
-          const detailsResponse = await fetch(
-            `https://maps.googleapis.com/maps/api/place/details/json?place_id=${mosque.place_id}&fields=name,geometry,opening_hours&key=${apiKey}`
-          );
-          const detailsData = await detailsResponse.json();
-
-          // Check if opening_hours property exists
-          const openingHours = detailsData.result.opening_hours || {};
-        
           // Calculate distance using Haversine formula
           const { lat, lng } = mosque.geometry.location;
           const distance = calculateDistance(latitude, longitude, lat, lng);
 
-          // Extract Jummah and Zuhr timings from the opening hours data
-          const jummahTiming = openingHours.periods ? openingHours.periods.find((period) => period.open.day === 5) : null; // Assuming Friday is the day for Jummah prayer
-          const zuhrTiming = openingHours.periods ? openingHours.periods.find((period) => period.open.day === 0) : null; // Assuming Sunday is the day for Zuhr prayer
+          // Fetch Jummah timing using Aladhan API
+          const jummahTiming = await getJummahTiming(lat, lng);
 
           return {
             id: mosque.id,
             name: mosque.name,
             distance,
-            jummahTiming: jummahTiming ? jummahTiming.open.time : 'Not available',
-            zuhrTiming: zuhrTiming ? zuhrTiming.open.time : 'Not available',
+            jummahTiming,
             coordinate: {
               latitude: lat,
               longitude: lng,
@@ -137,6 +129,22 @@ const Maps = () => {
     } catch (error) {
       console.log('Error fetching nearby mosques:', error);
     }
+  };
+
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c * 1000; // Distance in meters
+    return distance;
+  };
+
+  const toRad = (value) => {
+    return (value * Math.PI) / 180;
   };
 
   const handleMarkerPress = (mosque) => {
@@ -174,14 +182,16 @@ const Maps = () => {
               />
             ))}
           </MapView>
-          <MosqueModal
-            visible={selectedMosque !== null}
-            onClose={handleCloseModal}
-            name={selectedMosque?.name}
-            distance={selectedMosque?.distance}
-            jummahTiming={selectedMosque?.jummahTiming}
-            zuhrTiming={selectedMosque?.zuhrTiming}
-          />
+          {selectedMosque && (
+            <MosqueModal
+              visible={selectedMosque !== null}
+              onClose={handleCloseModal}
+              name={selectedMosque.name}
+              distance={selectedMosque.distance}
+              jummahTiming={selectedMosque.jummahTiming}
+              zuhrTiming={selectedMosque.zuhrTiming}
+            />
+          )}
         </View>
       )}
     </>
@@ -196,35 +206,35 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   markerIcon: {
-    width: 32,
-    height: 32,
+    width: 30,
+    height: 30,
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     padding: 20,
     borderRadius: 8,
     alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
   },
   modalText: {
     fontSize: 16,
-    marginBottom: 5,
+    marginBottom: 8,
   },
   closeButton: {
-    backgroundColor: '#e0e0e0',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
     marginTop: 20,
+    padding: 10,
+    backgroundColor: 'lightgray',
+    borderRadius: 8,
   },
   closeButtonText: {
     fontSize: 16,
