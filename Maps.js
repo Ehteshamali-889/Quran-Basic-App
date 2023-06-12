@@ -11,15 +11,16 @@ const CustomMarker = ({ coordinate, image, name, distance, onPress }) => {
   );
 };
 
-const MosqueModal = ({ visible, onClose, name, distance, jummahTiming, zuhrTiming }) => {
+const MosqueModal = ({ visible, onClose, name, distance, prayerTimings }) => {
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>{name}</Text>
           {distance && <Text style={styles.modalText}>Distance: {(distance / 1000).toFixed(2)} km</Text>}
-          <Text style={styles.modalText}>Jummah Timing: {jummahTiming}</Text>
-          <Text style={styles.modalText}>Zuhr Timing: {zuhrTiming}</Text>
+          {Object.entries(prayerTimings).map(([prayer, time]) => (
+            <Text key={prayer} style={styles.modalText}>{prayer}: {time}</Text>
+          ))}
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeButtonText}>Close</Text>
           </TouchableOpacity>
@@ -28,6 +29,7 @@ const MosqueModal = ({ visible, onClose, name, distance, jummahTiming, zuhrTimin
     </Modal>
   );
 };
+
 
 const Maps = () => {
   const [currentLocation, setCurrentLocation] = useState(null);
@@ -71,60 +73,47 @@ const Maps = () => {
     );
   };
 
-  const getJummahTiming = async (latitude, longitude) => {
-    const url = `http://api.aladhan.com/v1/timingsByCoordinates?latitude=${latitude}&longitude=${longitude}&method=2&date=${new Date().toISOString().split('T')[0]}`;
+  const getPrayerTimings = async (latitude, longitude) => {
+    const url = `https://api.aladhan.com/v1/timings/12-06-2023?latitude=${latitude}&longitude=${longitude}&method=2`;
   
     try {
       const response = await fetch(url);
       const data = await response.json();
-      const timings = data.data.timings;
-  
-      if (timings && timings.Jummah) {
-        return {
-          jummahTiming: timings.Jummah,
-          zuhrTiming: timings.Dhuhr,
-        };
-      } else {
-        return {
-          jummahTiming: 'Not available',
-          zuhrTiming: timings && timings.Dhuhr ? timings.Dhuhr : 'Not available',
-        };
-      }
+      return data.data.timings;
     } catch (error) {
-      console.log('Error fetching Jummah and Zuhr timings:', error);
+      console.error('Error fetching prayer timings:', error);
       return {
-        jummahTiming: 'Not available',
-        zuhrTiming: 'Not available',
+        Fajr: 'Unknown',
+        Dhuhr: 'Unknown',
+        Asr: 'Unknown',
+        Maghrib: 'Unknown',
+        Isha: 'Unknown',
       };
     }
   };
-  
-  
   
 
   const getNearbyMosques = async (latitude, longitude) => {
     const apiKey = 'AIzaSyBkZD_cnR-XhqYKYV3ng4j0l29IAPjoQmQ'; // Replace with your Google Places API key
     const radius = 5000;
     const type = 'mosque';
-  
+
     try {
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${apiKey}`
       );
       const data = await response.json();
-  
+
       const mosques = await Promise.all(
         data.results.map(async (mosque) => {
           const { lat, lng } = mosque.geometry.location;
           const distance = calculateDistance(latitude, longitude, lat, lng);
-          const timings = await getJummahTiming(lat, lng);
-  
+          const timings = await getPrayerTimings(lat, lng);
           return {
             id: mosque.id,
             name: mosque.name,
             distance,
-            jummahTiming: timings.jummahTiming,
-            zuhrTiming: timings.zuhrTiming,
+            prayerTimings: timings,
             coordinate: {
               latitude: lat,
               longitude: lng,
@@ -132,13 +121,12 @@ const Maps = () => {
           };
         })
       );
-  
+
       setNearbyMosques(mosques);
     } catch (error) {
       console.log('Error fetching nearby mosques:', error);
     }
   };
-  
 
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371; // Radius of the earth in km
@@ -173,18 +161,18 @@ const Maps = () => {
             initialRegion={{
               latitude: currentLocation.latitude,
               longitude: currentLocation.longitude,
-              latitudeDelta: 0.009, // Adjust this value for desired zoom level
-              longitudeDelta: 0.009, // Adjust this value for desired zoom level
+              latitudeDelta: 0.009,
+              longitudeDelta: 0.009,
             }}
           >
-            {nearbyMosques.map((mosque) => (
+            {nearbyMosques.map((mosque,index) => (
               <CustomMarker
-                key={mosque.id}
+                key={index}
                 coordinate={{
                   latitude: mosque.coordinate.latitude,
                   longitude: mosque.coordinate.longitude,
                 }}
-                image={require('./assets/nabawi-mosque.png')} // Replace with the path to your custom mosque icon image
+                image={require('./assets/nabawi-mosque.png')}
                 name={mosque.name}
                 distance={mosque.distance}
                 onPress={() => handleMarkerPress(mosque)}
@@ -197,8 +185,7 @@ const Maps = () => {
               onClose={handleCloseModal}
               name={selectedMosque.name}
               distance={selectedMosque.distance}
-              jummahTiming={selectedMosque.jummahTiming}
-              zuhrTiming={selectedMosque.zuhrTiming}
+              prayerTimings={selectedMosque.prayerTimings}
             />
           )}
         </View>
