@@ -72,51 +72,59 @@ const Maps = () => {
   };
 
   const getJummahTiming = async (latitude, longitude) => {
-    const url = `http://api.aladhan.com/v1/calendar?latitude=${latitude}&longitude=${longitude}&method=2`; // Replace with your desired calculation method (here, method=2 corresponds to Islamic Society of North America (ISNA))
-
+    const url = `http://api.aladhan.com/v1/timingsByCoordinates?latitude=${latitude}&longitude=${longitude}&method=2&date=${new Date().toISOString().split('T')[0]}`;
+  
     try {
       const response = await fetch(url);
       const data = await response.json();
-      const currentDate = new Date();
-      const hijriDate = data.data.find((item) => item.date.gregorian.date === currentDate.toISOString().split('T')[0]);
-
-      if (hijriDate && hijriDate.timings.Jummah) {
-        return hijriDate.timings.Jummah;
+      const timings = data.data.timings;
+  
+      if (timings && timings.Jummah) {
+        return {
+          jummahTiming: timings.Jummah,
+          zuhrTiming: timings.Dhuhr,
+        };
       } else {
-        return 'Not available';
+        return {
+          jummahTiming: 'Not available',
+          zuhrTiming: timings && timings.Dhuhr ? timings.Dhuhr : 'Not available',
+        };
       }
     } catch (error) {
-      console.log('Error fetching Jummah timing:', error);
-      return 'Not available';
+      console.log('Error fetching Jummah and Zuhr timings:', error);
+      return {
+        jummahTiming: 'Not available',
+        zuhrTiming: 'Not available',
+      };
     }
   };
+  
+  
+  
 
   const getNearbyMosques = async (latitude, longitude) => {
-    // Replace this API key with your Google Places API key
     const apiKey = 'AIzaSyBkZD_cnR-XhqYKYV3ng4j0l29IAPjoQmQ'; // Replace with your Google Places API key
-    const radius = 5000; // Specify the radius (in meters) around the current location to search for mosques
-    const type = 'mosque'; // Specify the type of place to search for (mosque in this case)
-
+    const radius = 5000;
+    const type = 'mosque';
+  
     try {
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${apiKey}`
       );
       const data = await response.json();
-
+  
       const mosques = await Promise.all(
         data.results.map(async (mosque) => {
-          // Calculate distance using Haversine formula
           const { lat, lng } = mosque.geometry.location;
           const distance = calculateDistance(latitude, longitude, lat, lng);
-
-          // Fetch Jummah timing using Aladhan API
-          const jummahTiming = await getJummahTiming(lat, lng);
-
+          const timings = await getJummahTiming(lat, lng);
+  
           return {
             id: mosque.id,
             name: mosque.name,
             distance,
-            jummahTiming,
+            jummahTiming: timings.jummahTiming,
+            zuhrTiming: timings.zuhrTiming,
             coordinate: {
               latitude: lat,
               longitude: lng,
@@ -124,12 +132,13 @@ const Maps = () => {
           };
         })
       );
-
+  
       setNearbyMosques(mosques);
     } catch (error) {
       console.log('Error fetching nearby mosques:', error);
     }
   };
+  
 
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371; // Radius of the earth in km
@@ -164,8 +173,8 @@ const Maps = () => {
             initialRegion={{
               latitude: currentLocation.latitude,
               longitude: currentLocation.longitude,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
+              latitudeDelta: 0.009, // Adjust this value for desired zoom level
+              longitudeDelta: 0.009, // Adjust this value for desired zoom level
             }}
           >
             {nearbyMosques.map((mosque) => (
