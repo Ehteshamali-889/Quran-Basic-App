@@ -11,13 +11,7 @@ const CustomMarker = ({ coordinate, image, name, distance, onPress }) => {
   );
 };
 
-const MosqueModal = ({ visible, onClose, name, distance, prayerTimings }) => {
-  const excludedPrayers = ['Firstthird', 'Lastthird', 'Midnight', 'Imsak'];
-  const [showJamaatTimings, setShowJamaatTimings] = useState(false);
-
-  const toggleTimings = () => {
-    setShowJamaatTimings(!showJamaatTimings);
-  };
+const MosqueModal = ({ visible, onClose, name, distance}) => {
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
@@ -25,33 +19,7 @@ const MosqueModal = ({ visible, onClose, name, distance, prayerTimings }) => {
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>{name}</Text>
           {distance && <Text style={styles.modalText}>Distance: {(distance / 1000).toFixed(2)} km</Text>}
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[styles.tabButton, !showJamaatTimings && styles.activeTab]}
-              onPress={toggleTimings}
-            >
-              <Text style={[styles.tabButtonText, !showJamaatTimings && styles.activeTabText]}>Prayer Timings</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tabButton, showJamaatTimings && styles.activeTab]}
-              onPress={toggleTimings}
-            >
-              <Text style={[styles.tabButtonText, showJamaatTimings && styles.activeTabText]}>Jamaat Timings</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.prayerTable}>
-            {Object.entries(prayerTimings).map(([prayer, time]) => {
-              if (excludedPrayers.includes(prayer) || (showJamaatTimings && prayer !== 'Jummah')) {
-                return null; // Exclude the prayer from rendering
-              }
-              return (
-                <View key={prayer} style={styles.prayerRow}>
-                  <Text style={styles.prayerName}>{prayer}</Text>
-                  <Text style={styles.prayerTime}>{time}</Text>
-                </View>
-              );
-            })}
-          </View>
+          
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeButtonText}>Close</Text>
           </TouchableOpacity>
@@ -107,24 +75,6 @@ const Maps = () => {
     );
   };
 
-  const getPrayerTimings = async (latitude, longitude) => {
-    const url = `https://api.aladhan.com/v1/timings/12-06-2023?latitude=${latitude}&longitude=${longitude}&method=2`;
-  
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-      return data.data.timings;
-    } catch (error) {
-      console.error('Error fetching prayer timings:', error);
-      return {
-        Fajr: 'Unknown',
-        Dhuhr: 'Unknown',
-        Asr: 'Unknown',
-        Maghrib: 'Unknown',
-        Isha: 'Unknown',
-      };
-    }
-  };
   
 
   const getNearbyMosques = async (latitude, longitude) => {
@@ -142,12 +92,10 @@ const Maps = () => {
         data.results.map(async (mosque) => {
           const { lat, lng } = mosque.geometry.location;
           const distance = calculateDistance(latitude, longitude, lat, lng);
-          const timings = await getPrayerTimings(lat, lng);
           return {
             id: mosque.id,
             name: mosque.name,
             distance,
-            prayerTimings: timings,
             coordinate: {
               latitude: lat,
               longitude: lng,

@@ -137,16 +137,16 @@ const Quran = () => {
                         <View>
                             <Image source={require('./assets/kaaba-1.png')} style={{ width: 100, height: 100 }} />
                         </View>
-                        <Text style={{marginTop:10,marginLeft:5}} >Mecca</Text>
+                        <Text style={{marginTop:10,marginLeft:25}} >Mecca</Text>
                     </TouchableOpacity>
                 </View>
 
                 <View style={{ flex: 1, marginLeft: 15 }}>
                     <TouchableOpacity onPress={handlePress7}>
                         <View>
-                            <Image source={require('./assets/calendar.png')} style={{ width: 100, height: 100 }} />
+                            <Image source={require('./assets/online-ads.png')} style={{ width: 100, height: 100 }} />
                         </View>
-                        <Text style={{marginLeft:10,marginTop:10}}>AdScreen</Text>
+                        <Text style={{marginLeft:20,marginTop:10}}>AdScreen</Text>
                     </TouchableOpacity>
                 </View>
             </View>
