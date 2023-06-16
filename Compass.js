@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, PermissionsAndroid } from 'react-native';
 import { Platform } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 
@@ -8,14 +8,15 @@ const Compass = () => {
   const [qiblaAngle, setQiblaAngle] = useState(0);
 
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      setRotation(0); // Set initial rotation angle for Android emulator
-    } else {
-      const getQiblaAngle = async () => {
-        try {
-          const granted = await Geolocation.requestAuthorization('whenInUse');
+    const getQiblaAngle = async () => {
+      try {
+        if (Platform.OS === 'android') {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+          );
 
-          if (granted === 'granted') {
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            // Location permission granted
             Geolocation.getCurrentPosition(
               (position) => {
                 const { latitude, longitude } = position.coords;
@@ -31,13 +32,16 @@ const Compass = () => {
           } else {
             console.log('Location permission denied');
           }
-        } catch (error) {
-          console.log('Error requesting location permission:', error);
+        } else {
+          // For iOS, you can use the requestAuthorization method if needed
+          // ...
         }
-      };
+      } catch (error) {
+        console.log('Error requesting location permission:', error);
+      }
+    };
 
-      getQiblaAngle();
-    }
+    getQiblaAngle();
   }, []);
 
   const calculateAngle = (currentRotation, qiblaDirection) => {

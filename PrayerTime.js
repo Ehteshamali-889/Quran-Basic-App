@@ -89,7 +89,7 @@ const PrayerTime = () => {
   if (prayerTimes === null || location === null) {
     return (
       <View style={styles.container}>
-        <Text>Loading prayer times and location...</Text>
+        <Text style={{color:'black'}}>Loading prayer times and location...</Text>
       </View>
     );
   }

@@ -20,6 +20,7 @@ const LiveStream = () => {
       <Button
         title={isLandscape ? 'Switch to Portrait' : 'Switch to Landscape'}
         onPress={toggleOrientation}
+        color="#5FACCE" // Set the button background color
       />
       <WebView
         source={{ uri: 'https://www.youtube.com/embed/qK-zm6rcYmA' }} // Replace with your actual YouTube live stream URL

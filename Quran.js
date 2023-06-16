@@ -97,7 +97,7 @@ const Quran = () => {
                         <View>
                             <Image source={require('./assets/mosque-1.png')} style={{ width: 100, height: 100 }} />
                         </View>
-                        <Text style={{marginTop:10}} >Nearby Mosques</Text>
+                        <Text style={{marginTop:10,color: 'black'}} >Nearby Mosques</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -106,7 +106,7 @@ const Quran = () => {
                         <View>
                             <Image source={require('./assets/prayer.png')} style={{ width: 100, height: 100 }} />
                         </View>
-                        <Text style={{marginLeft:10,marginTop:10}}>Prayer Time</Text>
+                        <Text style={{marginLeft:10,marginTop:10,color: 'black'}}>Prayer Time</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -117,7 +117,7 @@ const Quran = () => {
                         <View>
                             <Image source={require('./assets/compass-1.png')} style={{ width: 100, height: 100 }} />
                         </View>
-                        <Text style={{marginTop:10,marginLeft:5}} >Qibla Direction</Text>
+                        <Text style={{marginTop:10,marginLeft:5,color: 'black'}} >Qibla Direction</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -126,7 +126,7 @@ const Quran = () => {
                         <View>
                             <Image source={require('./assets/calendar.png')} style={{ width: 100, height: 100 }} />
                         </View>
-                        <Text style={{marginLeft:10,marginTop:10}}>Islamic Events</Text>
+                        <Text style={{marginLeft:10,marginTop:10,color: 'black'}}>Islamic Events</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -137,7 +137,7 @@ const Quran = () => {
                         <View>
                             <Image source={require('./assets/kaaba-1.png')} style={{ width: 100, height: 100 }} />
                         </View>
-                        <Text style={{marginTop:10,marginLeft:25}} >Mecca</Text>
+                        <Text style={{marginTop:10,marginLeft:25,color: 'black'}} >Mecca</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -146,7 +146,7 @@ const Quran = () => {
                         <View>
                             <Image source={require('./assets/online-ads.png')} style={{ width: 100, height: 100 }} />
                         </View>
-                        <Text style={{marginLeft:20,marginTop:10}}>AdScreen</Text>
+                        <Text style={{marginLeft:20,marginTop:10,color: 'black'}}>AdScreen</Text>
                     </TouchableOpacity>
                 </View>
             </View>
