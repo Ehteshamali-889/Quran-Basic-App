@@ -1,6 +1,7 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity,ScrollView } from 'react-native'
-import React from 'react'
+import React,{useEffect} from 'react'
 import { useNavigation } from '@react-navigation/native';
+import Orientation from 'react-native-orientation';
 const Quran = () => {
     const navigation = useNavigation();
     const handlePress = () => {
@@ -35,6 +36,12 @@ const Quran = () => {
         navigation.navigate('AdScreen')
     };
 
+    useEffect(() => {
+        Orientation.lockToPortrait();
+        return () => {
+          Orientation.unlockAllOrientations();
+        };
+      }, []);
     return (
         <ScrollView style={{ marginLeft: 20 }}>
             <View style={{ marginTop: 20 }}>

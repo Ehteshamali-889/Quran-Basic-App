@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Image, TouchableOpacity, Text,StyleSheet } from 'react-native';
+import { View, Image, TouchableOpacity, Text,StyleSheet,ScrollView } from 'react-native';
 import Sound from 'react-native-sound';
 
 const FirstSurah = () => {
@@ -404,7 +404,7 @@ const FirstSurah = () => {
   }, []);
 
   return (
-    <View style={{marginTop:20}}>
+    <ScrollView style={{marginTop:20}}>
       {renderContent()}
       <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 20 }}>
       {currentPage > 1 && (
@@ -420,7 +420,7 @@ const FirstSurah = () => {
 
         )}
       </View>
-    </View>
+    </ScrollView>
   );
 };
 const styles = StyleSheet.create({

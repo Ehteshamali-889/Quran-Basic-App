@@ -204,10 +204,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+    color:'black',
   },
   modalText: {
     fontSize: 16,
     marginBottom: 8,
+    color:'black',
   },
   closeButton: {
     marginTop: 20,

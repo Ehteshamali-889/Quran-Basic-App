@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text ,ScrollView} from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 
 LocaleConfig.locales['en'] = {
@@ -88,7 +88,7 @@ const EventCalendar = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Calendar
         markedDates={markedDates}
         renderDayContent={renderDayContent}
@@ -105,7 +105,7 @@ const EventCalendar = () => {
         }}
       />
       <View style={styles.eventCardsContainer}>{renderEventCards()}</View>
-    </View>
+    </ScrollView>
   );
 };
 
