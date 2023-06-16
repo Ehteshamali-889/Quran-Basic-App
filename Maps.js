@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, PermissionsAndroid, Image, Modal, Text, TouchableOpacity } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
+import config from './config'
 
 const CustomMarker = ({ coordinate, image, name, distance, onPress }) => {
   return (
@@ -78,7 +79,7 @@ const Maps = () => {
   
 
   const getNearbyMosques = async (latitude, longitude) => {
-    const apiKey = 'AIzaSyBkZD_cnR-XhqYKYV3ng4j0l29IAPjoQmQ'; // Replace with your Google Places API key
+    const apiKey = config.API_KEY; // Replace with your Google Places API key
     const radius = 5000;
     const type = 'mosque';
 
